@@ -10,6 +10,6 @@ public class TypeTreeConverter : DefaultTypeTreeReplacer
 
 	protected override TypeTreeType? CreateReplacement(int originalTypeID)
 	{
-		return base.CreateReplacement(114);
+		return base.CreateReplacement(142);
 	}
 }
