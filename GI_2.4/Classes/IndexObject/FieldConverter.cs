@@ -5,7 +5,7 @@ namespace TypeTreeConversion.IndexObject;
 
 public class FieldConverter : DefaultFieldConverter
 {
-	public readonly Dictionary<AssetFileInfo, AssetTypeValueField> InfoMap = new Dictionary<AssetFileInfo, AssetTypeValueField>();
+	public readonly Dictionary<UnityAsset, AssetTypeValueField> InfoMap = new Dictionary<UnityAsset, AssetTypeValueField>();
 	public FieldConverter(ClassDatabaseFile classDatabase) : base(classDatabase)
 	{
 	}
@@ -17,7 +17,7 @@ public class FieldConverter : DefaultFieldConverter
 
 	protected override void CopyFields(UnityAsset asset, AssetTypeValueField source, AssetTypeValueField destination)
 	{
-		InfoMap.TryAdd(asset.Info, asset.BaseField);
+		InfoMap.TryAdd(asset, asset.BaseField);
 		destination["m_Name"].AsString = "IndexObject";
 		destination["m_AssetBundleName"].AsString = "IndexObject";
 		if (source.TryGetChild("m_AssetIndex", out AssetTypeValueField? assetIndex))
