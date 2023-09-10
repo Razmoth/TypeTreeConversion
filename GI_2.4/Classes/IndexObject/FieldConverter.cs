@@ -1,11 +1,11 @@
 ﻿using AssetsTools.NET;
 using AssetsTools.NET.Extra;
-using System.Linq.Expressions;
 
 namespace TypeTreeConversion.IndexObject;
 
 public class FieldConverter : DefaultFieldConverter
 {
+	public static readonly Dictionary<AssetFileInfo, AssetTypeValueField> InfoMap = new Dictionary<AssetFileInfo, AssetTypeValueField>();
 	public FieldConverter(ClassDatabaseFile classDatabase) : base(classDatabase)
 	{
 	}
@@ -17,25 +17,29 @@ public class FieldConverter : DefaultFieldConverter
 
 	protected override void CopyFields(UnityAsset asset, AssetTypeValueField source, AssetTypeValueField destination)
 	{
-		//CopyFieldsExactly(source, destination);
+		if (!InfoMap.ContainsKey(asset.Info))
+		{
+			var baseValue = asset.Manager.GetBaseField(asset.File, asset.Info);
+			InfoMap.Add(asset.Info, baseValue);
+		}
 		destination["m_Name"].AsString = "IndexObject";
 		destination["m_AssetBundleName"].AsString = "IndexObject";
 		if (source.TryGetChild("m_AssetIndex", out var assetIndex))
 		{
 			foreach(var index in assetIndex["Array"])
 			{
-				var assetInfo = ValueBuilder.DefaultValueFieldFromTemplate(destination["m_Container.Array"].TemplateField.Children[1].Children[1]);
+				var containerData = ValueBuilder.DefaultValueFieldFromArrayTemplate(destination["m_Container.Array"]);
 
-				assetInfo["preloadIndex"].AsInt = destination["m_PreloadTable.Array"].Children.Count;
+				containerData["first"].AsString = index["first"].AsString;
 
-				var data = ValueBuilder.DefaultValueFieldFromArrayTemplate(destination["m_PreloadTable.Array"]);
-				CopyFieldsExactly(index["second"], data);
-				destination["m_PreloadTable.Array"].Children.Add(data);
+				containerData["second.preloadIndex"].AsInt = destination["m_PreloadTable.Array"].Children.Count;
+				containerData["second.preloadSize"].AsInt = 1;
+				CopyFieldsExactly(index["second"], containerData["second.asset"]);
+				destination["m_Container.Array"].Children.Add(containerData);
 
-				assetInfo["preloadSize"].AsInt = destination["m_PreloadTable.Array"].Children.Count;
-
-				CopyFieldsExactly(index["second"], assetInfo["asset"]);
-				destination["m_Container.Array"].Children.Add(assetInfo);
+				var preloadTabledata = ValueBuilder.DefaultValueFieldFromArrayTemplate(destination["m_PreloadTable.Array"]);
+				CopyFieldsExactly(index["second"], preloadTabledata);
+				destination["m_PreloadTable.Array"].Children.Add(preloadTabledata);
 			}
 		}
 	}

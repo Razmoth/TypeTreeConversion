@@ -17,17 +17,16 @@ public class FieldConverter : DefaultFieldConverter
 
 	protected override void CopyFields(UnityAsset asset, AssetTypeValueField source, AssetTypeValueField destination)
 	{
-		if (!asset.File.file.AssetInfos.Contains(IndexObjectInfo))
+		IndexObjectInfo ??= asset.File.file.AssetInfos.FirstOrDefault(x => x.PathId == 2 && x.TypeId == ClassIDType.IndexObject);
+		if (IndexObject.FieldConverter.InfoMap.TryGetValue(IndexObjectInfo, out IndexObjectBaseValue))
 		{
-			IndexObjectInfo = asset.File.file.AssetInfos.FirstOrDefault(x => x.TypeId == ClassIDType.IndexObject);
-			IndexObjectBaseValue = asset.Manager.GetBaseField(asset.File, IndexObjectInfo);
-		}
-		if (IndexObjectBaseValue.TryGetChild("m_AssetIndex", out var assetIndex))
-		{
-			var index = assetIndex["Array"].FirstOrDefault(x => x["second.m_PathID"].AsLong == asset.Info.PathId);
-			if (index != null)
+			if (IndexObjectBaseValue.TryGetChild("m_AssetIndex", out var assetIndex))
 			{
-				destination["m_Name"].AsString = index["first"].AsString;
+				var index = assetIndex["Array"].FirstOrDefault(x => x["second.m_PathID"].AsLong == asset.Info.PathId);
+				if (index != null)
+				{
+					destination["m_Name"].AsString = index["first"].AsString;
+				}
 			}
 		}
 		destination["m_Script"].AsByteArray = source["m_bytes.Array"].AsByteArray;
