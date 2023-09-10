@@ -5,7 +5,7 @@ namespace TypeTreeConversion.IndexObject;
 
 public class FieldConverter : DefaultFieldConverter
 {
-	public static readonly Dictionary<AssetFileInfo, AssetTypeValueField> InfoMap = new Dictionary<AssetFileInfo, AssetTypeValueField>();
+	public readonly Dictionary<AssetFileInfo, AssetTypeValueField> InfoMap = new Dictionary<AssetFileInfo, AssetTypeValueField>();
 	public FieldConverter(ClassDatabaseFile classDatabase) : base(classDatabase)
 	{
 	}
@@ -17,18 +17,14 @@ public class FieldConverter : DefaultFieldConverter
 
 	protected override void CopyFields(UnityAsset asset, AssetTypeValueField source, AssetTypeValueField destination)
 	{
-		if (!InfoMap.ContainsKey(asset.Info))
-		{
-			var baseValue = asset.Manager.GetBaseField(asset.File, asset.Info);
-			InfoMap.Add(asset.Info, baseValue);
-		}
+		InfoMap.TryAdd(asset.Info, asset.BaseField);
 		destination["m_Name"].AsString = "IndexObject";
 		destination["m_AssetBundleName"].AsString = "IndexObject";
-		if (source.TryGetChild("m_AssetIndex", out var assetIndex))
+		if (source.TryGetChild("m_AssetIndex", out AssetTypeValueField? assetIndex))
 		{
-			foreach(var index in assetIndex["Array"])
+			foreach (AssetTypeValueField? index in assetIndex["Array"])
 			{
-				var containerData = ValueBuilder.DefaultValueFieldFromArrayTemplate(destination["m_Container.Array"]);
+				AssetTypeValueField containerData = ValueBuilder.DefaultValueFieldFromArrayTemplate(destination["m_Container.Array"]);
 
 				containerData["first"].AsString = index["first"].AsString;
 
@@ -37,7 +33,7 @@ public class FieldConverter : DefaultFieldConverter
 				CopyFieldsExactly(index["second"], containerData["second.asset"]);
 				destination["m_Container.Array"].Children.Add(containerData);
 
-				var preloadTabledata = ValueBuilder.DefaultValueFieldFromArrayTemplate(destination["m_PreloadTable.Array"]);
+				AssetTypeValueField preloadTabledata = ValueBuilder.DefaultValueFieldFromArrayTemplate(destination["m_PreloadTable.Array"]);
 				CopyFieldsExactly(index["second"], preloadTabledata);
 				destination["m_PreloadTable.Array"].Children.Add(preloadTabledata);
 			}

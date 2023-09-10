@@ -2,9 +2,9 @@
 
 namespace TypeTreeConversion.IndexObject;
 
-public class TypeTreeConverter : DefaultTypeTreeReplacer
+public class TypeTreeReplacer : DefaultTypeTreeReplacer
 {
-	public TypeTreeConverter(ClassDatabaseFile classDatabase) : base(classDatabase)
+	public TypeTreeReplacer(ClassDatabaseFile classDatabase) : base(classDatabase)
 	{
 	}
 

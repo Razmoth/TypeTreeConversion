@@ -1,6 +1,6 @@
 ﻿namespace TypeTreeConversion
 {
-    public static class ClassIDType
+	public static class ClassIDType
 	{
 		public const int NavMeshHeightFieldData = 239;
 		public const int MiHoYoGrassData = 601;

@@ -4,10 +4,10 @@ namespace TypeTreeConversion.MiHoYoBinData;
 
 public class FieldConverter : DefaultFieldConverter
 {
-	public static AssetFileInfo IndexObjectInfo;
-	public static AssetTypeValueField IndexObjectBaseValue;
-	public FieldConverter(ClassDatabaseFile classDatabase) : base(classDatabase)
+	private readonly IReadOnlyDictionary<AssetFileInfo, AssetTypeValueField> infoMap;
+	public FieldConverter(ClassDatabaseFile classDatabase, IndexObject.FieldConverter indexObjectConverter) : base(classDatabase)
 	{
+		this.infoMap = indexObjectConverter.InfoMap;
 	}
 
 	protected override AssetTypeValueField? CreateNewBaseField(int originalTypeID)
@@ -17,12 +17,12 @@ public class FieldConverter : DefaultFieldConverter
 
 	protected override void CopyFields(UnityAsset asset, AssetTypeValueField source, AssetTypeValueField destination)
 	{
-		IndexObjectInfo ??= asset.File.file.AssetInfos.FirstOrDefault(x => x.PathId == 2 && x.TypeId == ClassIDType.IndexObject);
-		if (IndexObject.FieldConverter.InfoMap.TryGetValue(IndexObjectInfo, out IndexObjectBaseValue))
+		AssetFileInfo IndexObjectInfo = asset.File.file.AssetInfos.FirstOrDefault(x => x.TypeId == ClassIDType.IndexObject);
+		if (infoMap.TryGetValue(IndexObjectInfo, out AssetTypeValueField IndexObjectBaseValue))
 		{
-			if (IndexObjectBaseValue.TryGetChild("m_AssetIndex", out var assetIndex))
+			if (IndexObjectBaseValue.TryGetChild("m_AssetIndex", out AssetTypeValueField? assetIndex))
 			{
-				var index = assetIndex["Array"].FirstOrDefault(x => x["second.m_PathID"].AsLong == asset.Info.PathId);
+				AssetTypeValueField? index = assetIndex["Array"].FirstOrDefault(x => x["second.m_PathID"].AsLong == asset.Info.PathId);
 				if (index != null)
 				{
 					destination["m_Name"].AsString = index["first"].AsString;
